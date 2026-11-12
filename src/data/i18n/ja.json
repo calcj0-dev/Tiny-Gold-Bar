@@ -1,0 +1,96 @@
+{
+  "app": {
+    "name": "金塊、ちっさ！",
+    "tagline": "お金で金を買うと、金塊はどのくらいの大きさになる？",
+    "version": "v{version}",
+    "credit": "つくった人：@shooojp19"
+  },
+  "common": {
+    "soundOn": "音あり",
+    "soundOff": "音なし",
+    "close": "閉じる",
+    "disclaimer": "本作はジョークであり、投資・税務の助言ではありません。金への投資をすすめるものでも、否定するものでもありません。",
+    "priceNote": "1g＝{price}の架空の値段で計算しています。実際の金の値段は毎日変わります。",
+    "basisLink": "計算の前提",
+    "privacyLink": "プライバシーについて"
+  },
+  "title": {
+    "start": "はじめる"
+  },
+  "play": {
+    "buy": "金を買う",
+    "amountLabel": "1回に買う金額",
+    "spent": "使ったお金",
+    "weight": "金の重さ",
+    "taps": "{n}回",
+    "toResult": "結果を見る",
+    "next": "次は {name}",
+    "pass": "{name}を追い越しました！",
+    "passSub": "{name}と同じ大きさの金は {price}",
+    "allPassed": "全部追い越しました。まだ買えます"
+  },
+  "objects": {
+    "sesame": "ゴマ",
+    "rice": "米粒",
+    "coin1": "1円玉",
+    "dice": "サイコロ",
+    "battery": "単三電池",
+    "egg": "卵",
+    "phone": "スマホ",
+    "book": "文庫本",
+    "milk": "牛乳パック",
+    "bottle2l": "2Lペットボトル",
+    "bucket": "バケツ",
+    "bathtub": "浴槽"
+  },
+  "result": {
+    "heading": "結果",
+    "spent": "使ったお金",
+    "weight": "金の重さ",
+    "size": "一辺{size}の立方体",
+    "stillSmaller": "金塊は、まだ{next}より小さいです",
+    "allPassed": "金塊は、{last}より大きくなりました",
+    "passedCount": "追い越した物：{n}個（{total}個中）",
+    "taps": "タップ数：{n}回",
+    "allGoldHeading": "ちなみに",
+    "allGold": "人類がこれまでに掘った金を全部集めても、一辺{side}の立方体です。1g＝{price}で約{yen}になります。",
+    "retry": "もう一回",
+    "share": "Xでシェア",
+    "shareImage": "画像を付けてシェア",
+    "saveImage": "画像を保存"
+  },
+  "share": {
+    "textStill": "{spent}で金を買ったら、金塊（{weight}）はまだ{next}より小さかった #{hashtag}",
+    "textAll": "{spent}で金を買ったら、金塊（{weight}）は{last}より大きくなった #{hashtag}"
+  },
+  "image": {
+    "heading": "金塊、ちっさ！",
+    "line1": "{spent}で金を買ったら",
+    "line2Still": "金塊（{weight}）は、まだ{next}より小さい",
+    "line2All": "金塊（{weight}）は、{last}より大きい",
+    "footer": "ジョークです。投資・税務の助言ではありません"
+  },
+  "links": {
+    "heading": "このゲームを作った人のアプリ",
+    "tameru": "あなたの資産は、金塊ならどのくらい？ 毎月の資産を記録しよう",
+    "tameruButton": "TAMERU を見る",
+    "follow": "つくった人をフォロー"
+  },
+  "basis": {
+    "heading": "計算の前提",
+    "price": "金の値段：1g＝{price}（架空の値段。実際の値段は毎日変わります）",
+    "density": "金の密度：1cm³あたり{density}g。金塊は、同じ重さの立方体で描いています",
+    "objects": "比べる物の大きさは目安です。追い越したかどうかは体積で比べています",
+    "allGold": "人類が掘った金の量：約{tonnes}t（{asOf}、{source}）"
+  },
+  "privacy": {
+    "heading": "プライバシーについて",
+    "body": "（前作の文言をもとに作り、公開前にオーナーが確認する）"
+  },
+  "format": {
+    "yen": "{n}円",
+    "man": "万",
+    "oku": "億",
+    "cho": "兆"
+  }
+}

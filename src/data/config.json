@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "gold": {
+    "pricePerGram": 20000,
+    "priceIsFictional": true,
+    "densityGPerCm3": 19.32
+  },
+  "amounts": [100, 1000, 10000, 100000, 1000000, 10000000],
+  "defaultAmount": 100,
+  "allGold": {
+    "tonnes": 224200,
+    "asOf": "2026-09-30",
+    "source": "World Gold Council『How much gold has been mined?』"
+  },
+  "view": {
+    "nextObjectHeightRatio": 0.6,
+    "zoomMs": 400
+  },
+  "sounds": {
+    "buy": "chari",
+    "pass": "fanfare",
+    "result": "chissa"
+  },
+  "hashtag": "金塊ちっさ",
+  "links": {
+    "tameru": "https://tameru-lovat.vercel.app/?utm_source=bakage&utm_medium=game&utm_campaign=baka071",
+    "follow": "https://x.com/shooojp19"
+  }
+}

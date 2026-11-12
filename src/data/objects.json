@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "note": "volumeCm3 で追い越しを判定する。w・h（cm）と shape は絵を描くためだけに使う（体積とは別の、見た目の目安）",
+  "objects": [
+    { "id": "sesame",    "volumeCm3": 0.003,  "shape": "ellipse",   "w": 0.3,  "h": 0.2 },
+    { "id": "rice",      "volumeCm3": 0.025,  "shape": "ellipse",   "w": 0.5,  "h": 0.3 },
+    { "id": "coin1",     "volumeCm3": 0.37,   "shape": "circle",    "w": 2.0,  "h": 2.0 },
+    { "id": "dice",      "volumeCm3": 4.1,    "shape": "roundRect", "w": 1.6,  "h": 1.6 },
+    { "id": "battery",   "volumeCm3": 8.3,    "shape": "roundRect", "w": 1.4,  "h": 5.0 },
+    { "id": "egg",       "volumeCm3": 55,     "shape": "ellipse",   "w": 4.5,  "h": 6.0 },
+    { "id": "phone",     "volumeCm3": 100,    "shape": "roundRect", "w": 7.0,  "h": 15.0 },
+    { "id": "book",      "volumeCm3": 236,    "shape": "rect",      "w": 10.5, "h": 15.0 },
+    { "id": "milk",      "volumeCm3": 1000,   "shape": "rect",      "w": 7.0,  "h": 19.5 },
+    { "id": "bottle2l",  "volumeCm3": 2000,   "shape": "roundRect", "w": 10.0, "h": 31.0 },
+    { "id": "bucket",    "volumeCm3": 10000,  "shape": "trapezoid", "w": 28.0, "h": 27.0 },
+    { "id": "bathtub",   "volumeCm3": 200000, "shape": "rect",      "w": 120.0, "h": 55.0 }
+  ]
+}
