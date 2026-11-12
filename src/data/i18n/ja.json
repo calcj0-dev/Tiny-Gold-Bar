@@ -89,6 +89,7 @@
   },
   "format": {
     "yen": "{n}円",
+    "approx": "約{n}",
     "man": "万",
     "oku": "億",
     "cho": "兆"
