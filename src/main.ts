@@ -1,10 +1,12 @@
-// 作業 #1 の空ページ：作品名・バージョン・免責だけを出す。画面は作業 #3・#5 で作る
 import './style.css';
 import { initAnalytics } from './analytics';
 import { unlockAudio } from './audio';
 import { setLocale, t } from './i18n';
-import { h } from './ui/dom';
-import { APP_VERSION } from './version';
+import { createApp } from './ui/app';
+import { disclaimer } from './ui/parts';
+import { playScreen } from './ui/screens/play';
+import { resultScreen } from './ui/screens/result';
+import { titleScreen } from './ui/screens/title';
 
 setLocale('ja');
 initAnalytics();
@@ -15,12 +17,12 @@ document.addEventListener('keydown', unlockAudio, { capture: true });
 
 const root = document.querySelector<HTMLElement>('#app');
 if (root) {
-  root.replaceChildren(
-    h('div', { className: 'screen' }, [
-      h('div', { className: 'top-bar' }, [h('span', { className: 'version', text: t('app.version', { version: APP_VERSION }) })]),
-      h('h1', { className: 'app-name', text: t('app.name') }),
-      h('p', { className: 'tagline', text: t('app.tagline') }),
-    ]),
-    h('footer', { className: 'disclaimer', text: t('common.disclaimer') }),
-  );
+  const app = createApp(root, { title: titleScreen, play: playScreen, result: resultScreen }, disclaimer());
+  app.go('title');
+
+  // 開発用：?screen=play のように画面を直接開く（公開版では無視する）
+  if (import.meta.env.DEV) {
+    const screen = new URLSearchParams(location.search).get('screen');
+    if (screen === 'play' || screen === 'result') app.go(screen);
+  }
 }
