@@ -2,6 +2,7 @@
 // 「金を買う」は pointerdown で反応（連打の遅れをなくす。設計書 5.6）
 
 import { track } from '../../analytics';
+import { sfx } from '../../audio';
 import { buy, grams, nextObject, objectPrice, passedCount } from '../../core/gold';
 import { formatApproxYen, formatNumberJa, formatWeight, formatYen } from '../../core/format';
 import { config, objects } from '../../data';
@@ -62,7 +63,13 @@ export const playScreen: ScreenFactory = (app) => {
   function onBuy() {
     const r = buy(session.game, objects, config.gold);
     session.game = r.game;
-    if (r.newlyPassed) showToast(r.newlyPassed);
+    if (r.newlyPassed) {
+      // 2つ以上追い越しても、一言と音は1回（一番大きい物）
+      showToast(r.newlyPassed);
+      sfx.pass();
+    } else {
+      sfx.buy(config.amounts.indexOf(r.game.amount), config.amounts.length);
+    }
     render(true);
   }
 
