@@ -1,11 +1,12 @@
-// S1 タイトル（仮）。作品名・一言・「はじめる」・バージョン・音だけ。
-// 計算の前提・プライバシー・クレジットは作業 #5 で足す
+// S1 タイトル（設計書 2章）：作品名、一言、「はじめる」、右上にバージョンと音、
+// 「計算の前提」「プライバシーについて」、クレジット。免責は全画面の下の帯
 
 import { session } from '../../session';
 import { t } from '../../i18n';
 import { APP_VERSION } from '../../version';
 import type { ScreenFactory } from '../app';
-import { button, h } from '../dom';
+import { button, h, linkButton } from '../dom';
+import { openBasis, openPrivacy } from '../modals';
 import { soundButton } from '../parts';
 
 export const titleScreen: ScreenFactory = (app) => {
@@ -15,12 +16,17 @@ export const titleScreen: ScreenFactory = (app) => {
       h('span', { className: 'version', text: t('app.version', { version: APP_VERSION }) }),
       soundButton(),
     ]),
-    h('h1', { className: 'app-name', text: t('app.name') }),
-    h('p', { className: 'tagline', text: t('app.tagline') }),
+    h('div', { className: 'title-hero' }, [
+      h('h1', { className: 'app-name', text: t('app.name') }),
+      h('p', { className: 'tagline', text: t('app.tagline') }),
+    ]),
     button(t('title.start'), () => {
       session.reset('title');
       app.go('play');
     }, 'btn btn-primary start-btn'),
+    h('span', { className: 'spacer' }),
+    h('p', { className: 'footer-links' }, [linkButton(t('common.basisLink'), () => openBasis('title')), linkButton(t('common.privacyLink'), openPrivacy)]),
+    h('p', { className: 'credit', text: t('app.credit') }),
   ]);
   return { el };
 };
