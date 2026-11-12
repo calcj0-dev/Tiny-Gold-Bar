@@ -21,11 +21,11 @@ export const titleScreen: ScreenFactory = (app) => {
       h('p', { className: 'tagline', text: t('app.tagline') }),
     ]),
     button(t('title.start'), () => {
-      session.reset('title');
+      session.reset();
       app.go('play');
     }, 'btn btn-primary start-btn'),
     h('span', { className: 'spacer' }),
-    h('p', { className: 'footer-links' }, [linkButton(t('common.basisLink'), () => openBasis('title')), linkButton(t('common.privacyLink'), openPrivacy)]),
+    h('p', { className: 'footer-links' }, [linkButton(t('common.basisLink'), openBasis), linkButton(t('common.privacyLink'), openPrivacy)]),
     h('p', { className: 'credit', text: t('app.credit') }),
   ]);
   return { el };

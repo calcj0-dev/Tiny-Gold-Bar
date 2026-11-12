@@ -4,7 +4,6 @@ import { type Game, newGame } from './core/gold';
 import { config } from './data';
 
 let game: Game = newGame(config.defaultAmount);
-let startFrom: 'title' | 'retry' = 'title';
 
 export const session = {
   get game(): Game {
@@ -13,12 +12,8 @@ export const session = {
   set game(g: Game) {
     game = g;
   },
-  /** 新しいプレイを始める。from は計測の start に使う */
-  reset(from: 'title' | 'retry'): void {
+  /** 新しいプレイを始める */
+  reset(): void {
     game = newGame(config.defaultAmount);
-    startFrom = from;
-  },
-  get startFrom(): 'title' | 'retry' {
-    return startFrom;
   },
 };

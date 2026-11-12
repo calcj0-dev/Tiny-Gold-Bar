@@ -4,7 +4,7 @@
 export type GoldParams = { pricePerGram: number; densityGPerCm3: number };
 export type ObjectSpec = { id: string; volumeCm3: number; w: number; h: number; shape: string };
 
-/** ゲームの状態（設計書 5.3。maxAmount は確認事項 Q4 で追加）。メモリの中だけ */
+/** ゲームの状態（設計書 5.3）。メモリの中だけ */
 export type Game = {
   /** 使ったお金（円の整数） */
   spent: number;
@@ -13,15 +13,13 @@ export type Game = {
   amount: number;
   /** 追い越した物の数 */
   passed: number;
-  /** このプレイで使った一番大きい1回の金額（計測の max_amount。まだ買っていなければ 0） */
-  maxAmount: number;
 };
 
 /** 体積がちょうど同じときに、小数の誤差で「追い越していない」にならないための余裕 */
 const EPS = 1e-9;
 
 export function newGame(amount: number): Game {
-  return { spent: 0, taps: 0, amount, passed: 0, maxAmount: 0 };
+  return { spent: 0, taps: 0, amount, passed: 0 };
 }
 
 export function grams(spent: number, p: GoldParams): number {
@@ -76,7 +74,7 @@ export function buy<T extends ObjectSpec>(game: Game, objects: readonly T[], p: 
   const passed = passedCount(spent, objects, p);
   const count = passed - game.passed;
   return {
-    game: { ...game, spent, taps: game.taps + 1, passed, maxAmount: Math.max(game.maxAmount, game.amount) },
+    game: { ...game, spent, taps: game.taps + 1, passed },
     newlyPassed: count > 0 ? (objects[passed - 1] ?? null) : null,
     newlyPassedCount: count,
   };

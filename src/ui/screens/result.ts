@@ -1,6 +1,5 @@
 // S3 結果（設計書 2章）。笑いどころは「まだ〇〇より小さい」。シェアは作業 #6 で足す
 
-import { spentBand, track } from '../../analytics';
 import { sfx } from '../../audio';
 import { allGold, sideCm } from '../../core/gold';
 import { formatNumberJa, formatSize, formatYen } from '../../core/format';
@@ -18,16 +17,13 @@ export const resultScreen: ScreenFactory = (app) => {
   const g = session.game;
   const s = summarize(g);
   sfx.result();
-  track('finish', { passed: g.passed, spent_band: spentBand(g.spent), max_amount: g.maxAmount });
 
   const scene = createScene();
   const all = allGold(config.allGold.tonnes, config.gold);
 
   const tameru = externalLink(t('links.tameruButton'), config.links.tameru);
   tameru.className = 'btn btn-link-out';
-  tameru.addEventListener('click', () => track('main_app_click', { target: 'tameru' }));
   const follow = externalLink(t('links.follow'), config.links.follow);
-  follow.addEventListener('click', () => track('main_app_click', { target: 'follow' }));
 
   const el = h('div', { className: 'screen result' }, [
     h('div', { className: 'top-bar' }, [h('h2', { className: 'result-heading', text: t('result.heading') }), h('span', { className: 'spacer' }), soundButton()]),
@@ -53,8 +49,7 @@ export const resultScreen: ScreenFactory = (app) => {
 
     h('div', { className: 'result-actions' }, [
       button(t('result.retry'), () => {
-        track('retry', {});
-        session.reset('retry');
+        session.reset();
         app.go('play');
       }, 'btn btn-primary'),
     ]),
@@ -67,7 +62,7 @@ export const resultScreen: ScreenFactory = (app) => {
     ]),
 
     h('p', { className: 'price-note', text: t('common.priceNote', { price: formatYen(config.gold.pricePerGram) }) }),
-    h('p', { className: 'footer-links' }, [linkButton(t('common.basisLink'), () => openBasis('result')), linkButton(t('common.privacyLink'), openPrivacy)]),
+    h('p', { className: 'footer-links' }, [linkButton(t('common.basisLink'), openBasis), linkButton(t('common.privacyLink'), openPrivacy)]),
   ]);
 
   // 絵は画面に置かれて大きさが決まってから描く（ResizeObserver が描く）

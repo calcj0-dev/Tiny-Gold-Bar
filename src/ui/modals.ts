@@ -1,6 +1,5 @@
 // 重ね表示：M2 計算の前提・M3 プライバシーについて（設計書 2章・1.5・5.5）
 
-import { gaId, track } from '../analytics';
 import { formatNumberJa, formatYen } from '../core/format';
 import { config } from '../data';
 import { t } from '../i18n';
@@ -31,9 +30,8 @@ function open(heading: string, body: HTMLElement[]): void {
   if (!d.open) d.showModal();
 }
 
-/** M2 計算の前提。from は計測の basis_open に使う（title／result） */
-export function openBasis(from: 'title' | 'result'): void {
-  track('basis_open', { from });
+/** M2 計算の前提 */
+export function openBasis(): void {
   const g = config.gold;
   const lines = [
     t('basis.price', { price: formatYen(g.pricePerGram) }),
@@ -44,14 +42,11 @@ export function openBasis(from: 'title' | 'result'): void {
   open(t('basis.heading'), [h('ul', { className: 'modal-list' }, lines.map((s) => h('li', { text: s })))]);
 }
 
-/** M3 プライバシーについて。GA4 を使うときと使わないときで文言を替える（前作と同じ） */
+/** M3 プライバシーについて（U4。計測は Vercel Analytics だけ） */
 export function openPrivacy(): void {
-  const useGa = gaId() !== '';
-  const keys: MessageKey[] = useGa
-    ? ['privacy.ga.p1', 'privacy.ga.p2', 'privacy.ga.p3', 'privacy.ga.p4', 'privacy.ga.p5']
-    : ['privacy.basic.p1', 'privacy.basic.p2', 'privacy.basic.p3', 'privacy.basic.p4'];
-  const links = useGa
-    ? [externalLink(t('privacy.googlePolicy'), config.links.googlePrivacy), externalLink(t('privacy.optout'), config.links.gaOptout)]
-    : [externalLink(t('privacy.vercelPolicy'), config.links.vercelPrivacy)];
-  open(t('privacy.heading'), [...keys.map((k) => h('p', { className: 'modal-p', text: t(k) })), ...links.map((a) => h('p', { className: 'modal-p' }, [a]))]);
+  const keys: MessageKey[] = ['privacy.p1', 'privacy.p2', 'privacy.p3', 'privacy.p4'];
+  open(t('privacy.heading'), [
+    ...keys.map((k) => h('p', { className: 'modal-p', text: t(k) })),
+    h('p', { className: 'modal-p' }, [externalLink(t('privacy.vercelPolicy'), config.links.vercelPrivacy)]),
+  ]);
 }

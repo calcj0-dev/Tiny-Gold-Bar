@@ -66,14 +66,12 @@ describe('T-02 追い越し', () => {
     expect(r.newlyPassed?.id).toBe('battery');
   });
 
-  it('追い越さなかったタップでは一言なし。使ったお金・タップ数・一番大きい金額が更新される', () => {
+  it('追い越さなかったタップでは一言なし。使ったお金・タップ数が更新される。金額を変えると次のタップから変わる', () => {
     let g = newGame(100);
     g = buy(g, objects, p).game;
     const r = buy({ ...g, amount: 1000 }, objects, p);
     expect(r.newlyPassed).toBeNull();
-    expect(r.game).toEqual({ spent: 1100, taps: 2, amount: 1000, passed: 0, maxAmount: 1000 });
-    const r2 = buy({ ...r.game, amount: 100 }, objects, p);
-    expect(r2.game.maxAmount).toBe(1000);
+    expect(r.game).toEqual({ spent: 1100, taps: 2, amount: 1000, passed: 0 });
   });
 
   it('元の状態は変えない', () => {

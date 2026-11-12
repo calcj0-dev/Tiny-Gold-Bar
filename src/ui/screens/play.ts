@@ -1,7 +1,6 @@
 // S2 プレイ（設計書 2章・1.4）。
 // 「金を買う」は pointerdown で反応（連打の遅れをなくす。設計書 5.6）
 
-import { track } from '../../analytics';
 import { sfx } from '../../audio';
 import { buy, grams, nextObject, objectPrice, passedCount } from '../../core/gold';
 import { formatApproxYen, formatNumberJa, formatWeight, formatYen } from '../../core/format';
@@ -23,7 +22,6 @@ export const playScreen: ScreenFactory = (app) => {
       session.game = { ...session.game, spent: v, taps: 1, passed: passedCount(v, objects, config.gold) };
     }
   }
-  track('start', { from: session.startFrom });
 
   const toResult = button(t('play.toResult'), () => app.go('result'), 'btn btn-small');
   const back = button('←', () => app.go('title'), 'icon-btn');
