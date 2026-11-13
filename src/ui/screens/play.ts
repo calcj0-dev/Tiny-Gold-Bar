@@ -2,7 +2,7 @@
 // 「金を買う」は pointerdown で反応（連打の遅れをなくす。設計書 5.6）
 
 import { sfx } from '../../audio';
-import { buy, grams, nextObject, objectPrice, passedCount } from '../../core/gold';
+import { buy, grams, objectPrice, passedCount } from '../../core/gold';
 import { formatApproxYen, formatNumberJa, formatWeight, formatYen } from '../../core/format';
 import { config, objects } from '../../data';
 import { t } from '../../i18n';
@@ -11,6 +11,7 @@ import type { ScreenFactory } from '../app';
 import { button, h } from '../dom';
 import { createScene, objectName } from '../scene';
 import { soundButton } from '../parts';
+import { createProgress } from '../progress';
 
 const TOAST_MS = 1500;
 
@@ -29,7 +30,7 @@ export const playScreen: ScreenFactory = (app) => {
 
   const spentEl = h('span', { className: 'stat-value' });
   const weightEl = h('span', { className: 'stat-value' });
-  const nextEl = h('p', { className: 'next-label' });
+  const progress = createProgress();
   const toastMain = h('p', { className: 'toast-main' });
   const toastSub = h('p', { className: 'toast-sub' });
   const toast = h('div', { className: 'toast', attrs: { role: 'status', 'aria-live': 'polite' } }, [toastMain, toastSub]);
@@ -87,8 +88,7 @@ export const playScreen: ScreenFactory = (app) => {
       weight: formatWeight(grams(g.spent, config.gold)),
       taps: t('play.taps', { n: formatNumberJa(g.taps) }),
     });
-    const next = nextObject(g.passed, objects);
-    nextEl.textContent = next ? t('play.next', { name: objectName(next) }) : t('play.allPassed');
+    progress.update(g.passed);
     toResult.disabled = g.taps === 0;
     for (const b of amountButtons) {
       const on = Number(b.dataset.amount) === g.amount;
@@ -104,7 +104,7 @@ export const playScreen: ScreenFactory = (app) => {
       h('div', { className: 'stat' }, [h('span', { className: 'stat-label', text: t('play.spent') }), spentEl]),
       h('div', { className: 'stat' }, [h('span', { className: 'stat-label', text: t('play.weight') }), weightEl]),
     ]),
-    h('div', { className: 'scene-wrap' }, [nextEl, scene.el, toast]),
+    h('div', { className: 'scene-wrap' }, [progress.el, scene.el, toast]),
     h('p', { className: 'amount-label', text: t('play.amountLabel') }),
     h('div', { className: 'amounts' }, amountButtons),
     buyBtn,

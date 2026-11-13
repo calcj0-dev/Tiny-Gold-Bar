@@ -176,9 +176,49 @@ button:disabled {
   margin: 8px calc(var(--gutter) * -1) 0;
 }
 
-.next-label {
+/* 比べる物の並び（12個を › でつなぐ） */
+.progress-wrap {
+  padding: 4px var(--gutter) 0;
+}
+
+.progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.prog-item {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.prog-item.passed {
+  opacity: 0.3;
+}
+
+.prog-item.current {
+  transform: scale(1.3);
+  background: #fff6d6;
+  box-shadow: 0 0 0 1.5px var(--gold);
+  z-index: 1;
+}
+
+.prog-arrow {
+  width: 8px;
   text-align: center;
-  font-size: 15px;
+  font-size: 12px;
+  line-height: 1;
+  color: var(--text-sub);
+}
+
+.prog-all {
+  margin-top: 4px;
+  text-align: center;
+  font-size: 14px;
   font-weight: 700;
 }
 
