@@ -369,6 +369,31 @@ a.link {
   font-size: 17px;
 }
 
+.result-actions-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.result-actions-row .btn {
+  font-size: 15px;
+}
+
+.image-preview {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1200 / 630;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.modal-note {
+  font-size: 12px;
+  color: var(--text-sub);
+  text-align: center;
+}
+
 .promo {
   margin-top: 20px;
   padding-top: 12px;

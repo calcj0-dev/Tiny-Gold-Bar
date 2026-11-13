@@ -7,12 +7,16 @@
     <meta name="description" content="お金で金を買うと、金塊はどのくらいの大きさになる？" />
     <meta name="theme-color" content="#ffffff" />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <!-- OGP の画像（public/og-default.png）は作業 #6・#8 で足す。絶対URLは VITE_SITE_URL から作る -->
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <!-- OGP。画像は tools/og で作る。絶対URLはビルド時に VITE_SITE_URL から作る -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="金塊、ちっさ！" />
     <meta property="og:title" content="金塊、ちっさ！" />
     <meta property="og:description" content="お金で金を買うと、金塊はどのくらいの大きさになる？" />
     <meta property="og:url" content="%VITE_SITE_URL%" />
+    <meta property="og:image" content="%VITE_SITE_URL%og-default.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta property="og:locale" content="ja_JP" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@shooojp19" />

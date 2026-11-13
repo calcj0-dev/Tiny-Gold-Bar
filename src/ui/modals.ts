@@ -1,6 +1,10 @@
 // 重ね表示：M2 計算の前提・M3 プライバシーについて（設計書 2章・1.5・5.5）
 
 import { formatNumberJa, formatYen } from '../core/format';
+import type { Game } from '../core/gold';
+import { postText } from '../share/postText';
+import { renderResultImage } from '../share/resultImage';
+import { canShareImage, saveImage, shareWithImage, toDataUrl } from '../share/share';
 import { config } from '../data';
 import { t } from '../i18n';
 import type { MessageKey } from '../i18n/types';
@@ -40,6 +44,32 @@ export function openBasis(): void {
     t('basis.allGold', { tonnes: formatNumberJa(config.allGold.tonnes), asOf: config.allGold.asOf, source: config.allGold.source }),
   ];
   open(t('basis.heading'), [h('ul', { className: 'modal-list' }, lines.map((s) => h('li', { text: s })))]);
+}
+
+/**
+ * M1 結果画像のプレビュー（設計書 2章）：画像、「画像を付けてシェア」（Web Share が使える端末だけ）、「画像を保存」。
+ * 画像は描き終わってから出す
+ */
+export function openImagePreview(game: Game): void {
+  const img = h('img', { className: 'image-preview', attrs: { alt: t('image.alt'), width: '1200', height: '630' } });
+  let blob: Blob | null = null;
+  const text = postText(game);
+  const shareBtn = button(t('result.shareImage'), () => {
+    if (blob) void shareWithImage(text, blob);
+  }, 'btn btn-primary');
+  const saveBtn = button(t('result.saveImage'), () => {
+    if (blob) void saveImage(blob);
+  });
+  shareBtn.hidden = true;
+  saveBtn.disabled = true;
+  open(t('image.previewHeading'), [img, shareBtn, saveBtn, h('p', { className: 'modal-note', text: t('image.longPress') })]);
+  void renderResultImage(game).then(async (b) => {
+    blob = b;
+    if (!b) return;
+    shareBtn.hidden = !(matchMedia('(pointer: coarse)').matches && canShareImage(b));
+    saveBtn.disabled = false;
+    img.src = await toDataUrl(b);
+  });
 }
 
 /** M3 プライバシーについて（U4。計測は Vercel Analytics だけ） */

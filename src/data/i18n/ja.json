@@ -68,9 +68,12 @@
   "image": {
     "heading": "金塊、ちっさ！",
     "line1": "{spent}で金を買ったら",
-    "line2Still": "金塊（{weight}）は、まだ{next}より小さい",
-    "line2All": "金塊（{weight}）は、{last}より大きい",
-    "footer": "ジョークです。投資・税務の助言ではありません"
+    "line2Still": "金塊（{weight}）は、\nまだ{next}より小さい",
+    "line2All": "金塊（{weight}）は、\n{last}より大きい",
+    "footer": "ジョークです。投資・税務の助言ではありません",
+    "previewHeading": "結果の画像",
+    "alt": "結果の画像：使ったお金と、金塊と比べる物の絵",
+    "longPress": "画像を長押しして保存することもできます"
   },
   "links": {
     "heading": "このゲームを作った人のアプリ",

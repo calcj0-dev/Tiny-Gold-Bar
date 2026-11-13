@@ -30,12 +30,20 @@ type Size = { w: number; h: number };
  * - 物＋あいだ＋金塊の幅が領域に入らないときも下げる（確認事項 Q2：浴槽など横長の物）
  * - 全部追い越したあとは、金塊が領域の ratio になる縮尺で、最後の物と並べる
  */
-export function computeScale(area: Size, side: number, next: CompareObject | null, last: CompareObject, ratio: number): number {
+export function computeScale(
+  area: Size,
+  side: number,
+  next: CompareObject | null,
+  last: CompareObject,
+  ratio: number,
+  pad = SIDE_PAD,
+  gap = GAP_PX,
+): number {
   const goldExtent = side * (1 + DEPTH);
   const targetH = area.h * ratio;
   const obj = next ?? last;
   let s = next ? targetH / Math.max(next.h, goldExtent) : targetH / goldExtent;
-  const availW = area.w - SIDE_PAD * 2 - GAP_PX;
+  const availW = area.w - pad * 2 - gap;
   if (availW > 0) s = Math.min(s, availW / (obj.w + goldExtent));
   return s;
 }
@@ -115,39 +123,11 @@ export function createScene(): Scene {
       scale = goal;
     }
 
-    const W = size.w;
-    const ground = size.h - LABEL_H;
-    ctx.clearRect(0, 0, W, size.h);
-
-    const obj = next() ?? last;
-    const sidePx = side() * scale;
-    const objW = obj.w * scale;
-    const objH = obj.h * scale;
-    const goldW = sidePx * (1 + DEPTH);
-    const total = objW + GAP_PX + goldW;
-    const x0 = (W - total) / 2;
-
-    // 地面
-    ctx.strokeStyle = cssVar('--line', '#e6e3da');
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(SIDE_PAD, ground + 0.5);
-    ctx.lineTo(W - SIDE_PAD, ground + 0.5);
-    ctx.stroke();
-
-    drawObject(ctx, obj, x0, ground, objW, objH);
-
-    // 物の名前
-    ctx.fillStyle = cssVar('--text-sub', '#6b665c');
-    ctx.font = '13px system-ui, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-    ctx.fillText(objectName(obj), x0 + objW / 2, ground + 6);
-
+    ctx.clearRect(0, 0, size.w, size.h);
     // 金塊（タップで少し弾む。下を軸に伸び縮み）
     const bp = (now - bounceStart) / BOUNCE_MS;
     const k = bp >= 0 && bp < 1 && !reducedMotion() ? 1 + 0.08 * Math.sin(Math.PI * bp) : 1;
-    drawGold(ctx, x0 + objW + GAP_PX + (goldW - goldW * k) / 2, ground, sidePx * k);
+    paintScene(ctx, { x: 0, y: 0, w: size.w, h: size.h }, spent, passed, scale, { bounce: k });
   }
 
   return {
@@ -167,11 +147,56 @@ export function createScene(): Scene {
   };
 }
 
-function drawObject(ctx: CanvasRenderingContext2D, obj: CompareObject, x: number, ground: number, w: number, h: number) {
+type Box = { x: number; y: number; w: number; h: number };
+type PaintOptions = { bounce?: number; fontPx?: number; lineWidth?: number; pad?: number; gap?: number };
+
+/**
+ * 枠 box の中に、地面・次の物（全部追い越したら最後の物）・物の名前・金塊を描く。
+ * scale を省くと、その枠に合う縮尺（computeScale）で描く。プレイ・結果画面と結果画像で使う
+ */
+export function paintScene(ctx: CanvasRenderingContext2D, box: Box, spent: number, passed: number, scale?: number, opt: PaintOptions = {}): void {
+  const fontPx = opt.fontPx ?? 13;
+  const labelH = fontPx + 15;
+  const pad = opt.pad ?? SIDE_PAD;
+  const gap = opt.gap ?? GAP_PX;
+  const k = opt.bounce ?? 1;
+  const last = objects[objects.length - 1]!;
+  const next = objects[passed] ?? null;
+  const side = sideCm(spent, config.gold);
+  const s = scale ?? computeScale({ w: box.w, h: box.h - labelH }, side, next, last, config.view.nextObjectHeightRatio, pad, gap);
+
+  const ground = box.y + box.h - labelH;
+  const obj = next ?? last;
+  const sidePx = side * s;
+  const objW = obj.w * s;
+  const goldW = sidePx * (1 + DEPTH);
+  const x0 = box.x + (box.w - (objW + gap + goldW)) / 2;
+
+  // 地面
+  ctx.strokeStyle = cssVar('--line', '#e6e3da');
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(box.x + pad, ground + 0.5);
+  ctx.lineTo(box.x + box.w - pad, ground + 0.5);
+  ctx.stroke();
+
+  drawObject(ctx, obj, x0, ground, objW, obj.h * s, opt.lineWidth ?? 2);
+
+  // 物の名前
+  ctx.fillStyle = cssVar('--text-sub', '#6b665c');
+  ctx.font = `${fontPx}px system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.fillText(objectName(obj), x0 + objW / 2, ground + Math.round(fontPx * 0.45));
+
+  drawGold(ctx, x0 + objW + gap + (goldW - goldW * k) / 2, ground, sidePx * k);
+}
+
+function drawObject(ctx: CanvasRenderingContext2D, obj: CompareObject, x: number, ground: number, w: number, h: number, lineWidth: number) {
   const y = ground - h;
   ctx.fillStyle = cssVar('--surface', '#f5f5f2');
   ctx.strokeStyle = cssVar('--text-sub', '#6b665c');
-  ctx.lineWidth = 2;
+  ctx.lineWidth = lineWidth;
   ctx.beginPath();
   switch (obj.shape) {
     case 'ellipse':

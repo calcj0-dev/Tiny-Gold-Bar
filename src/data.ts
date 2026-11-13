@@ -19,7 +19,7 @@ export type GameConfig = {
   view: { nextObjectHeightRatio: number; zoomMs: number };
   sounds: { buy: string; pass: string; result: string };
   hashtag: string;
-  links: { tameru: string; follow: string; vercelPrivacy: string };
+  links: { tameru: string; follow: string; vercelPrivacy: string; xIntent: string };
 };
 
 export type CompareObject = { id: string; volumeCm3: number; shape: Shape; w: number; h: number };

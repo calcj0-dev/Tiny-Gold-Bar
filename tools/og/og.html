@@ -1,0 +1,76 @@
+<!doctype html>
+<!-- OGP 画像（public/og-default.png、1200×630）の元。作品名と金塊の絵（設計書 5.2）。
+     作り方は tools/og/README.md -->
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        width: 1200px;
+        height: 630px;
+        background: #ffffff;
+        font-family: system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif;
+        color: #1f1d1a;
+      }
+      .wrap {
+        display: flex;
+        align-items: center;
+        height: 100%;
+        padding: 0 88px;
+        box-sizing: border-box;
+        gap: 72px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 104px;
+        line-height: 1.1;
+        color: #a87b0a;
+        white-space: nowrap;
+      }
+      p {
+        margin: 28px 0 0;
+        font-size: 36px;
+        color: #6b665c;
+        line-height: 1.5;
+      }
+      .art {
+        flex: none;
+        position: relative;
+        width: 300px;
+        height: 420px;
+      }
+      .ground {
+        position: absolute;
+        left: -20px;
+        right: -20px;
+        bottom: 0;
+        border-top: 2px solid #e6e3da;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div>
+        <h1>金塊、ちっさ！</h1>
+        <p>お金で金を買うと、<br />金塊はどのくらいの大きさになる？</p>
+      </div>
+      <div class="art">
+        <!-- 牛乳パック（輪郭）と、1億円の金塊（一辺6.37cm）を同じ縮尺で（1cm＝16px） -->
+        <svg width="300" height="420" viewBox="0 0 300 420" xmlns="http://www.w3.org/2000/svg">
+          <rect x="20" y="106" width="112" height="312" fill="#f5f5f2" stroke="#6b665c" stroke-width="4" />
+          <path d="M 156 316 L 191.7 280.3 L 293.7 280.3 L 258 316 Z" fill="#f2c94c" />
+          <defs>
+            <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#d4a017" />
+              <stop offset="1" stop-color="#a87b0a" />
+            </linearGradient>
+          </defs>
+          <rect x="156" y="316" width="102" height="102" fill="url(#g)" />
+        </svg>
+        <div class="ground"></div>
+      </div>
+    </div>
+  </body>
+</html>

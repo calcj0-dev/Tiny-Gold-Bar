@@ -8,7 +8,9 @@ import { t } from '../../i18n';
 import { session } from '../../session';
 import type { ScreenFactory } from '../app';
 import { button, externalLink, h, linkButton } from '../dom';
-import { openBasis, openPrivacy } from '../modals';
+import { openBasis, openImagePreview, openPrivacy } from '../modals';
+import { postText } from '../../share/postText';
+import { openXIntent } from '../../share/share';
 import { soundButton } from '../parts';
 import { summarize } from '../resultText';
 import { createScene } from '../scene';
@@ -48,10 +50,14 @@ export const resultScreen: ScreenFactory = (app) => {
     ]),
 
     h('div', { className: 'result-actions' }, [
-      button(t('result.retry'), () => {
-        session.reset();
-        app.go('play');
-      }, 'btn btn-primary'),
+      button(t('result.share'), () => openXIntent(postText(g)), 'btn btn-primary'),
+      h('div', { className: 'result-actions-row' }, [
+        button(t('result.shareImage'), () => openImagePreview(g)),
+        button(t('result.retry'), () => {
+          session.reset();
+          app.go('play');
+        }),
+      ]),
     ]),
 
     h('section', { className: 'promo' }, [
