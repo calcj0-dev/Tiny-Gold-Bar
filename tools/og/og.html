@@ -57,20 +57,37 @@
         <p>金を買い続けると、<br />金塊はどのくらいの大きさになる？</p>
       </div>
       <div class="art">
-        <!-- 牛乳パック（輪郭）と、1億円の金塊（一辺6.37cm）を同じ縮尺で（1cm＝16px） -->
-        <svg width="300" height="420" viewBox="0 0 300 420" xmlns="http://www.w3.org/2000/svg">
-          <rect x="20" y="106" width="112" height="312" fill="#f5f5f2" stroke="#6b665c" stroke-width="4" />
-          <path d="M 156 316 L 191.7 280.3 L 293.7 280.3 L 258 316 Z" fill="#f2c94c" />
-          <defs>
-            <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stop-color="#d4a017" />
-              <stop offset="1" stop-color="#a87b0a" />
-            </linearGradient>
-          </defs>
-          <rect x="156" y="316" width="102" height="102" fill="url(#g)" />
-        </svg>
+        <!-- 牛乳パックと、1億円の金塊（一辺6.37cm）を同じ縮尺で（1cm＝16px）。絵はゲームと同じ src/ui/art.ts で描く -->
+        <canvas id="art" width="300" height="420"></canvas>
         <div class="ground"></div>
       </div>
     </div>
+    <script type="module">
+      import { drawArt, drawGoldCube, groundShadow } from '../../src/ui/art.ts';
+
+      const S = 16; // 1cm あたりの px
+      const DEPTH = 0.35;
+      const canvas = document.getElementById('art');
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = 300 * dpr;
+      canvas.height = 420 * dpr;
+      canvas.style.width = '300px';
+      canvas.style.height = '420px';
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+      const ground = 418;
+      // 牛乳パック（7×19.5cm）
+      const mw = 7 * S;
+      const mh = 19.5 * S;
+      const mx = 20;
+      // 1億円の金塊（5kg、一辺6.37cm）
+      const side = Math.cbrt(100_000_000 / 20000 / 19.32) * S;
+      const gx = mx + mw + 26;
+      groundShadow(ctx, mx + mw / 2, ground, mw);
+      groundShadow(ctx, gx + (side * (1 + DEPTH)) / 2, ground, side * (1 + DEPTH));
+      drawArt(ctx, 'milk', mx, ground - mh, mw, mh, 3);
+      drawGoldCube(ctx, gx, ground, side, DEPTH, 0.6);
+      document.body.dataset.ready = '1';
+    </script>
   </body>
 </html>

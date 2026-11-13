@@ -1,14 +1,16 @@
-// OGP 画像とアイコンを PNG にする
+// OGP 画像とアイコンを PNG にする。
+// og.html はゲームの絵（src/ui/art.ts）を読み込むので、開発サーバー（npm run dev）の URL で開く
 import { chromium } from 'playwright-core';
 import { readFileSync } from 'node:fs';
-import { pathToFileURL } from 'node:url';
 
-const [, , ogHtml, faviconSvg, outDir] = process.argv;
+const [, , ogUrl, faviconSvg, outDir] = process.argv;
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
 try {
   const page = await browser.newPage({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1 });
-  await page.goto(pathToFileURL(ogHtml).href);
-  await page.waitForTimeout(300);
+  await page.goto(ogUrl);
+  // 絵を描き終わるまで待つ
+  await page.waitForSelector('body[data-ready="1"]', { timeout: 15000 });
+  await page.waitForTimeout(200);
   await page.screenshot({ path: `${outDir}/og-default.png` });
 
   const svg = readFileSync(faviconSvg, 'utf-8');
