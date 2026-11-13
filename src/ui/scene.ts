@@ -5,6 +5,7 @@ import { sideCm } from '../core/gold';
 import { type CompareObject, config, objects } from '../data';
 import { t } from '../i18n';
 import type { MessageKey } from '../i18n/types';
+import { drawArt, drawGoldCube, groundShadow } from './art';
 
 /** 物の名前（ja.json の objects。全部の id の名前があることは data.ts で検査済み） */
 export function objectName(o: CompareObject): string {
@@ -172,13 +173,19 @@ export function paintScene(ctx: CanvasRenderingContext2D, box: Box, spent: numbe
   const goldW = sidePx * (1 + DEPTH);
   const x0 = box.x + (box.w - (objW + gap + goldW)) / 2;
 
-  // 地面
+  // 床（地面から下をうすい色で塗り、上との境に線）
+  ctx.fillStyle = 'rgba(214,196,160,0.18)';
+  ctx.fillRect(box.x, ground, box.w, box.y + box.h - ground);
   ctx.strokeStyle = cssVar('--line', '#e6e3da');
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(box.x + pad, ground + 0.5);
   ctx.lineTo(box.x + box.w - pad, ground + 0.5);
   ctx.stroke();
+
+  // 影
+  groundShadow(ctx, x0 + objW / 2, ground, objW);
+  groundShadow(ctx, x0 + objW + gap + goldW / 2, ground, goldW * k);
 
   drawObject(ctx, obj, x0, ground, objW, obj.h * s, opt.lineWidth ?? 2);
 
@@ -189,11 +196,14 @@ export function paintScene(ctx: CanvasRenderingContext2D, box: Box, spent: numbe
   ctx.textBaseline = 'top';
   ctx.fillText(objectName(obj), x0 + objW / 2, ground + Math.round(fontPx * 0.45));
 
-  drawGold(ctx, x0 + objW + gap + (goldW - goldW * k) / 2, ground, sidePx * k);
+  // 弾んでいる間（k > 1）はきらめきを強くする
+  drawGoldCube(ctx, x0 + objW + gap + (goldW - goldW * k) / 2, ground, sidePx * k, DEPTH, Math.min(1, (k - 1) / 0.08));
 }
 
 function drawObject(ctx: CanvasRenderingContext2D, obj: CompareObject, x: number, ground: number, w: number, h: number, lineWidth: number) {
   const y = ground - h;
+  // イラストがある物はイラストで描く。ない物（JSON で足した物）は shape の輪郭で描く
+  if (drawArt(ctx, obj.id, x, y, w, h, lineWidth)) return;
   ctx.fillStyle = cssVar('--surface', '#f5f5f2');
   ctx.strokeStyle = cssVar('--text-sub', '#6b665c');
   ctx.lineWidth = lineWidth;
@@ -220,31 +230,4 @@ function drawObject(ctx: CanvasRenderingContext2D, obj: CompareObject, x: number
   }
   ctx.fill();
   ctx.stroke();
-}
-
-function drawGold(ctx: CanvasRenderingContext2D, x: number, ground: number, s: number) {
-  const gold = cssVar('--gold', '#d4a017');
-  // 1px 未満は 1px の点（設計書 3.3）
-  if (s < 1) {
-    ctx.fillStyle = gold;
-    ctx.fillRect(Math.round(x), ground - 1, 1, 1);
-    return;
-  }
-  const d = s * DEPTH;
-  const top = ground - s;
-  // 上面
-  ctx.fillStyle = cssVar('--gold-light', '#f2c94c');
-  ctx.beginPath();
-  ctx.moveTo(x, top);
-  ctx.lineTo(x + d, top - d);
-  ctx.lineTo(x + s + d, top - d);
-  ctx.lineTo(x + s, top);
-  ctx.closePath();
-  ctx.fill();
-  // 正面
-  const grad = ctx.createLinearGradient(x, top, x + s, ground);
-  grad.addColorStop(0, gold);
-  grad.addColorStop(1, cssVar('--gold-dark', '#a87b0a'));
-  ctx.fillStyle = grad;
-  ctx.fillRect(x, top, s, s);
 }
