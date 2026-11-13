@@ -20,6 +20,8 @@ export const GAP_PX = 24;
 const SIDE_PAD = 16;
 /** 物の名前を書く所の高さ（px） */
 const LABEL_H = 28;
+/** 名前を書かないときの、床の高さ（px） */
+const FLOOR_H = 14;
 const BOUNCE_MS = 160;
 
 type Size = { w: number; h: number };
@@ -65,7 +67,10 @@ function reducedMotion(): boolean {
   return typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-export function createScene(): Scene {
+/** label：物の名前を絵の下に書くか（プレイ画面は絵の上に大きく出すので書かない） */
+export function createScene(opts: { label?: boolean } = {}): Scene {
+  const label = opts.label ?? true;
+  const bottomH = label ? LABEL_H : FLOOR_H;
   const canvas = document.createElement('canvas');
   canvas.className = 'scene';
   const ctx = canvas.getContext('2d');
@@ -82,7 +87,7 @@ export function createScene(): Scene {
 
   const next = () => objects[passed] ?? null;
   const side = () => sideCm(spent, config.gold);
-  const target = () => (size.h > 0 ? computeScale({ w: size.w, h: size.h - LABEL_H }, side(), next(), last, config.view.nextObjectHeightRatio) : 0);
+  const target = () => (size.h > 0 ? computeScale({ w: size.w, h: size.h - bottomH }, side(), next(), last, config.view.nextObjectHeightRatio) : 0);
 
   const resize = () => {
     const rect = canvas.getBoundingClientRect();
@@ -128,7 +133,7 @@ export function createScene(): Scene {
     // 金塊（タップで少し弾む。下を軸に伸び縮み）
     const bp = (now - bounceStart) / BOUNCE_MS;
     const k = bp >= 0 && bp < 1 && !reducedMotion() ? 1 + 0.08 * Math.sin(Math.PI * bp) : 1;
-    paintScene(ctx, { x: 0, y: 0, w: size.w, h: size.h }, spent, passed, scale, { bounce: k });
+    paintScene(ctx, { x: 0, y: 0, w: size.w, h: size.h }, spent, passed, scale, { bounce: k, label });
   }
 
   return {
@@ -149,7 +154,7 @@ export function createScene(): Scene {
 }
 
 type Box = { x: number; y: number; w: number; h: number };
-type PaintOptions = { bounce?: number; fontPx?: number; lineWidth?: number; pad?: number; gap?: number };
+type PaintOptions = { bounce?: number; fontPx?: number; lineWidth?: number; pad?: number; gap?: number; label?: boolean };
 
 /**
  * 枠 box の中に、地面・次の物（全部追い越したら最後の物）・物の名前・金塊を描く。
@@ -157,7 +162,8 @@ type PaintOptions = { bounce?: number; fontPx?: number; lineWidth?: number; pad?
  */
 export function paintScene(ctx: CanvasRenderingContext2D, box: Box, spent: number, passed: number, scale?: number, opt: PaintOptions = {}): void {
   const fontPx = opt.fontPx ?? 13;
-  const labelH = fontPx + 15;
+  const label = opt.label ?? true;
+  const labelH = label ? fontPx + 15 : FLOOR_H;
   const pad = opt.pad ?? SIDE_PAD;
   const gap = opt.gap ?? GAP_PX;
   const k = opt.bounce ?? 1;
@@ -190,11 +196,13 @@ export function paintScene(ctx: CanvasRenderingContext2D, box: Box, spent: numbe
   drawObject(ctx, obj, x0, ground, objW, obj.h * s, opt.lineWidth ?? 2);
 
   // 物の名前
-  ctx.fillStyle = cssVar('--text-sub', '#6b665c');
-  ctx.font = `${fontPx}px system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'top';
-  ctx.fillText(objectName(obj), x0 + objW / 2, ground + Math.round(fontPx * 0.45));
+  if (label) {
+    ctx.fillStyle = cssVar('--text-sub', '#6b665c');
+    ctx.font = `${fontPx}px system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText(objectName(obj), x0 + objW / 2, ground + Math.round(fontPx * 0.45));
+  }
 
   // 弾んでいる間（k > 1）はきらめきを強くする
   drawGoldCube(ctx, x0 + objW + gap + (goldW - goldW * k) / 2, ground, sidePx * k, DEPTH, Math.min(1, (k - 1) / 0.08));

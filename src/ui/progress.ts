@@ -36,8 +36,9 @@ export function createProgress(): Progress {
     if (i > 0) row.append(h('span', { className: 'prog-arrow', text: '›', attrs: { 'aria-hidden': 'true' } }));
     row.append(it);
   });
-  const allPassed = h('p', { className: 'prog-all', text: t('play.allPassed') });
-  const el = h('div', { className: 'progress-wrap' }, [row, allPassed]);
+  // 比べている物の名前を大きく（オーナー案 2026-11-13）。全部追い越したら「全部追い越しました。まだ買えます」
+  const nameEl = h('p', { className: 'prog-name', attrs: { 'aria-hidden': 'true' } });
+  const el = h('div', { className: 'progress-wrap' }, [row, nameEl]);
 
   return {
     el,
@@ -48,7 +49,8 @@ export function createProgress(): Progress {
       });
       const next = objects[passed];
       row.setAttribute('aria-label', next ? t('play.next', { name: objectName(next) }) : t('play.allPassed'));
-      allPassed.hidden = passed < objects.length;
+      nameEl.textContent = next ? objectName(next) : t('play.allPassed');
+      nameEl.classList.toggle('all', !next);
     },
   };
 }

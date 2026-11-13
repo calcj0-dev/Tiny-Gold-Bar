@@ -35,7 +35,8 @@ export const playScreen: ScreenFactory = (app) => {
   const toastSub = h('p', { className: 'toast-sub' });
   const toast = h('div', { className: 'toast', attrs: { role: 'status', 'aria-live': 'polite' } }, [toastMain, toastSub]);
 
-  const scene = createScene();
+  // 物の名前は並びの下に大きく出すので、絵の下には書かない
+  const scene = createScene({ label: false });
 
   const amountButtons = config.amounts.map((a) => {
     const b = button(formatYen(a), () => {
