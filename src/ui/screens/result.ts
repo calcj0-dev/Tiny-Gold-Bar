@@ -11,7 +11,7 @@ import { button, externalLink, h, linkButton } from '../dom';
 import { openBasis, openImagePreview, openPrivacy } from '../modals';
 import { postText } from '../../share/postText';
 import { openXIntent } from '../../share/share';
-import { soundButton } from '../parts';
+import { homeButton, soundButton } from '../parts';
 import { summarize } from '../resultText';
 import { createScene } from '../scene';
 
@@ -28,7 +28,12 @@ export const resultScreen: ScreenFactory = (app) => {
   const follow = externalLink(t('links.follow'), config.links.follow);
 
   const el = h('div', { className: 'screen result' }, [
-    h('div', { className: 'top-bar' }, [h('h2', { className: 'result-heading', text: t('result.heading') }), h('span', { className: 'spacer' }), soundButton()]),
+    h('div', { className: 'top-bar' }, [
+      homeButton(() => app.go('title')),
+      h('h2', { className: 'result-heading', text: t('result.heading') }),
+      h('span', { className: 'spacer' }),
+      soundButton(),
+    ]),
 
     h('p', { className: 'stat-label', text: t('result.spent') }),
     h('p', { className: 'result-spent', text: s.spent }),

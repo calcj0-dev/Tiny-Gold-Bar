@@ -108,6 +108,12 @@ button:disabled {
   font-weight: 700;
 }
 
+.home-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .icon-btn {
   border: none;
   background: none;

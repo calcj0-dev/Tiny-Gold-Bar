@@ -10,7 +10,7 @@ import { session } from '../../session';
 import type { ScreenFactory } from '../app';
 import { button, h } from '../dom';
 import { createScene, objectName } from '../scene';
-import { soundButton } from '../parts';
+import { homeButton, soundButton } from '../parts';
 import { createProgress } from '../progress';
 
 const TOAST_MS = 1500;
@@ -25,8 +25,7 @@ export const playScreen: ScreenFactory = (app) => {
   }
 
   const toResult = button(t('play.toResult'), () => app.go('result'), 'btn btn-small');
-  const back = button('←', () => app.go('title'), 'icon-btn');
-  back.setAttribute('aria-label', t('play.back'));
+  const home = homeButton(() => app.go('title'));
 
   const spentEl = h('span', { className: 'stat-value' });
   const weightEl = h('span', { className: 'stat-value' });
@@ -100,7 +99,7 @@ export const playScreen: ScreenFactory = (app) => {
   }
 
   const el = h('div', { className: 'screen play' }, [
-    h('div', { className: 'top-bar' }, [back, toResult, h('span', { className: 'spacer' }), soundButton()]),
+    h('div', { className: 'top-bar' }, [home, toResult, h('span', { className: 'spacer' }), soundButton()]),
     h('div', { className: 'stats' }, [
       h('div', { className: 'stat' }, [h('span', { className: 'stat-label', text: t('play.spent') }), spentEl]),
       h('div', { className: 'stat' }, [h('span', { className: 'stat-label', text: t('play.weight') }), weightEl]),
