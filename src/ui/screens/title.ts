@@ -5,7 +5,8 @@ import { session } from '../../session';
 import { t } from '../../i18n';
 import { APP_VERSION } from '../../version';
 import type { ScreenFactory } from '../app';
-import { button, h, linkButton } from '../dom';
+import { config } from '../../data';
+import { button, externalLink, h, linkButton } from '../dom';
 import { openBasis, openPrivacy } from '../modals';
 import { soundButton } from '../parts';
 
@@ -26,7 +27,8 @@ export const titleScreen: ScreenFactory = (app) => {
     }, 'btn btn-primary start-btn'),
     h('span', { className: 'spacer' }),
     h('p', { className: 'footer-links' }, [linkButton(t('common.basisLink'), openBasis), linkButton(t('common.privacyLink'), openPrivacy)]),
-    h('p', { className: 'credit', text: t('app.credit') }),
+    // つくった人は X のプロフィールへのリンク（オーナー要望 2026-11-13）
+    h('p', { className: 'credit' }, [externalLink(t('app.credit'), config.links.follow)]),
   ]);
   return { el };
 };
