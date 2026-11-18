@@ -82,6 +82,8 @@ export const resultScreen: ScreenFactory = (app) => {
       h('p', { text: t('links.tameru') }),
       tameru,
       h('p', { className: 'promo-follow' }, [follow]),
+      // 作者のアプリ・ゲームのまとめ（オーナー要望 2026-11-18）
+      h('p', { className: 'promo-follow' }, [externalLink(t('links.appLab'), config.links.appLab)]),
     ]),
 
     h('p', { className: 'price-note', text: t('common.priceNote', { price: formatYen(config.gold.pricePerGram) }) }),

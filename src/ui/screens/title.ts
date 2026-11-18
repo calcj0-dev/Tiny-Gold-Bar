@@ -34,6 +34,8 @@ export const titleScreen: ScreenFactory = (app) => {
     h('p', { className: 'footer-links' }, [linkButton(t('common.basisLink'), openBasis), linkButton(t('common.privacyLink'), openPrivacy)]),
     // つくった人は X のプロフィールへのリンク（オーナー要望 2026-11-13）
     h('p', { className: 'credit' }, [externalLink(t('app.credit'), config.links.follow)]),
+    // 作者のアプリ・ゲームのまとめ（オーナー要望 2026-11-18）
+    h('p', { className: 'credit' }, [externalLink(t('links.appLab'), config.links.appLab)]),
   ]);
   return { el, unmount: () => art.destroy() };
 };
