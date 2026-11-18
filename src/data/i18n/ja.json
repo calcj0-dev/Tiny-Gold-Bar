@@ -16,7 +16,8 @@
     "privacyLink": "プライバシーについて"
   },
   "title": {
-    "start": "はじめる"
+    "start": "はじめる",
+    "howto": "金額を選んで「金を買う」を押すだけ"
   },
   "play": {
     "buy": "金を買う",
@@ -25,6 +26,7 @@
     "weight": "金の重さ",
     "taps": "{n}回",
     "weightValue": "{weight}（{taps}）",
+    "plus": "+{amount}",
     "toResult": "結果を見る",
     "next": "次は {name}",
     "pass": "{name}を追い越しました！",
@@ -52,8 +54,11 @@
     "size": "一辺{size}の立方体",
     "stillSmaller": "金塊は、まだ{next}より小さいです",
     "allPassed": "金塊は、{last}より大きくなりました",
-    "passedCount": "追い越した物：{n}個（{total}個中）",
-    "taps": "タップ数：{n}回",
+    "stamp": "ちっさ…",
+    "passedLabel": "追い越した物",
+    "passedValue": "{n}個 / {total}個",
+    "tapsLabel": "タップ数",
+    "tapsValue": "{n}回",
     "allGoldHeading": "ちなみに",
     "allGold": "人類がこれまでに掘った金を全部集めても、一辺{side}の立方体です。1g＝{price}で約{yen}になります。",
     "retry": "もう一回",

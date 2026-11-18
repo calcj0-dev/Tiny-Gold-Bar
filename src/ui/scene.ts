@@ -5,7 +5,7 @@ import { sideCm } from '../core/gold';
 import { type CompareObject, config, objects } from '../data';
 import { t } from '../i18n';
 import type { MessageKey } from '../i18n/types';
-import { drawArt, drawGoldCube, groundShadow } from './art';
+import { drawArt, drawGoldCube, groundShadow, star } from './art';
 
 /** 物の名前（ja.json の objects。全部の id の名前があることは data.ts で検査済み） */
 export function objectName(o: CompareObject): string {
@@ -55,8 +55,14 @@ export type Scene = {
   el: HTMLCanvasElement;
   /** 状態が変わったら呼ぶ。bounce：タップで金塊を弾ませる */
   update(spent: number, passed: number, bounce: boolean): void;
+  /** 金塊の真ん中の位置（画面の座標）。金の粒を飛ばす先 */
+  goldPoint(): { x: number; y: number } | null;
+  /** 追い越したときのきらめき（金塊のまわりに光が弾ける） */
+  burst(): void;
   destroy(): void;
 };
+
+const BURST_MS = 700;
 
 function cssVar(name: string, fallback: string): string {
   const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -83,6 +89,8 @@ export function createScene(opts: { label?: boolean } = {}): Scene {
   // ズーム（次の物が替わったとき、zoomMs かけて縮尺を変える）
   let zoom: { from: number; start: number } | null = null;
   let bounceStart = -Infinity;
+  let burstStart = -Infinity;
+  let gold: GoldBox | null = null;
   let raf = 0;
 
   const next = () => objects[passed] ?? null;
@@ -109,7 +117,8 @@ export function createScene(opts: { label?: boolean } = {}): Scene {
     draw(now);
     const zooming = zoom !== null;
     const bouncing = now - bounceStart < BOUNCE_MS;
-    if (zooming || bouncing) raf = requestAnimationFrame(frame);
+    const bursting = now - burstStart < BURST_MS;
+    if (zooming || bouncing || bursting) raf = requestAnimationFrame(frame);
   }
 
   function kick() {
@@ -133,11 +142,23 @@ export function createScene(opts: { label?: boolean } = {}): Scene {
     // 金塊（タップで少し弾む。下を軸に伸び縮み）
     const bp = (now - bounceStart) / BOUNCE_MS;
     const k = bp >= 0 && bp < 1 && !reducedMotion() ? 1 + 0.08 * Math.sin(Math.PI * bp) : 1;
-    paintScene(ctx, { x: 0, y: 0, w: size.w, h: size.h }, spent, passed, scale, { bounce: k, label });
+    gold = paintScene(ctx, { x: 0, y: 0, w: size.w, h: size.h }, spent, passed, scale, { bounce: k, label });
+    const bt = (now - burstStart) / BURST_MS;
+    if (bt >= 0 && bt < 1 && gold) paintBurst(ctx, gold, bt);
   }
 
   return {
     el: canvas,
+    goldPoint() {
+      if (!gold) return null;
+      const r = canvas.getBoundingClientRect();
+      return { x: r.left + gold.cx, y: r.top + gold.cy };
+    },
+    burst() {
+      if (reducedMotion()) return;
+      burstStart = performance.now();
+      kick();
+    },
     update(nextSpent, nextPassed, bounce) {
       const nextChanged = nextPassed !== passed;
       if (nextChanged && !reducedMotion() && scale > 0) zoom = { from: scale, start: performance.now() };
@@ -154,13 +175,36 @@ export function createScene(opts: { label?: boolean } = {}): Scene {
 }
 
 type Box = { x: number; y: number; w: number; h: number };
+/** 描いた金塊の真ん中（cx, cy）と見た目の大きさ（size：上面と右の面を含めた幅） */
+type GoldBox = { cx: number; cy: number; size: number };
+
+/** 追い越したときのきらめき。t は 0〜1（経過の割合） */
+function paintBurst(ctx: CanvasRenderingContext2D, g: GoldBox, t: number): void {
+  const size = Math.max(g.size, 24);
+  const ease = 1 - (1 - t) ** 2;
+  const alpha = 1 - t;
+  // 金色の輪が広がる
+  ctx.strokeStyle = `rgba(242,201,76,${0.7 * alpha})`;
+  ctx.lineWidth = 3 * (1 - t) + 1;
+  ctx.beginPath();
+  ctx.arc(g.cx, g.cy, size * (0.4 + 0.9 * ease), 0, Math.PI * 2);
+  ctx.stroke();
+  // きらめきが外へ飛ぶ
+  const n = 10;
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2 + (i % 2) * 0.3;
+    const d = size * (0.35 + (i % 2 ? 0.75 : 1.05) * ease);
+    const r = size * 0.09 * (1 - t * 0.6) * (i % 2 ? 0.7 : 1);
+    star(ctx, g.cx + Math.cos(a) * d, g.cy + Math.sin(a) * d, r, i % 3 === 0 ? `rgba(255,255,255,${alpha})` : `rgba(255,214,90,${alpha})`);
+  }
+}
 type PaintOptions = { bounce?: number; fontPx?: number; lineWidth?: number; pad?: number; gap?: number; label?: boolean };
 
 /**
  * 枠 box の中に、地面・次の物（全部追い越したら最後の物）・物の名前・金塊を描く。
  * scale を省くと、その枠に合う縮尺（computeScale）で描く。プレイ・結果画面と結果画像で使う
  */
-export function paintScene(ctx: CanvasRenderingContext2D, box: Box, spent: number, passed: number, scale?: number, opt: PaintOptions = {}): void {
+export function paintScene(ctx: CanvasRenderingContext2D, box: Box, spent: number, passed: number, scale?: number, opt: PaintOptions = {}): GoldBox {
   const fontPx = opt.fontPx ?? 13;
   const label = opt.label ?? true;
   const labelH = label ? fontPx + 15 : FLOOR_H;
@@ -198,14 +242,17 @@ export function paintScene(ctx: CanvasRenderingContext2D, box: Box, spent: numbe
   // 物の名前
   if (label) {
     ctx.fillStyle = cssVar('--text-sub', '#6b665c');
-    ctx.font = `${fontPx}px system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif`;
+    ctx.font = `700 ${fontPx}px "TGB Rounded", system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     ctx.fillText(objectName(obj), x0 + objW / 2, ground + Math.round(fontPx * 0.45));
   }
 
   // 弾んでいる間（k > 1）はきらめきを強くする
-  drawGoldCube(ctx, x0 + objW + gap + (goldW - goldW * k) / 2, ground, sidePx * k, DEPTH, Math.min(1, (k - 1) / 0.08));
+  const gx = x0 + objW + gap + (goldW - goldW * k) / 2;
+  drawGoldCube(ctx, gx, ground, sidePx * k, DEPTH, Math.min(1, (k - 1) / 0.08));
+  const gs = sidePx * k;
+  return { cx: gx + (gs * (1 + DEPTH)) / 2, cy: ground - (gs * (1 + DEPTH)) / 2, size: gs * (1 + DEPTH) };
 }
 
 function drawObject(ctx: CanvasRenderingContext2D, obj: CompareObject, x: number, ground: number, w: number, h: number, lineWidth: number) {

@@ -10,7 +10,7 @@ import { paintScene } from '../ui/scene';
 
 export const IMAGE_W = 1200;
 export const IMAGE_H = 630;
-const FONT = 'system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif';
+const FONT = '"TGB Rounded", system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif';
 const TEXT = '#1f1d1a';
 const SUB = '#6b665c';
 const GOLD_DARK = '#a87b0a';
@@ -48,6 +48,8 @@ export function displayUrl(url = siteUrl()): string {
 
 export async function renderResultImage(game: Game): Promise<Blob | null> {
   try {
+    // 丸ゴシックは使うときに読み込まれるので、描く前に読み込んでおく
+    await Promise.all([document.fonts?.load(`700 40px ${FONT}`), document.fonts?.load(`500 26px ${FONT}`)]);
     await document.fonts?.ready;
   } catch {
     // フォントの読み込みを待てなくても描く

@@ -1,4 +1,5 @@
-// S3 結果（設計書 2章）。笑いどころは「まだ〇〇より小さい」。シェアは作業 #6 で足す
+// S3 結果（設計書 2章）。笑いどころは「まだ〇〇より小さい」。
+// UI 改善 B（オーナー 2026-11-18）：金額・絵・ひとことを1枚のカードにまとめ、「ちっさ…」のハンコを押す。数字は小さなカードに分ける
 
 import { sfx } from '../../audio';
 import { allGold, sideCm } from '../../core/gold';
@@ -6,11 +7,11 @@ import { formatNumberJa, formatSize, formatYen } from '../../core/format';
 import { config, objects } from '../../data';
 import { t } from '../../i18n';
 import { session } from '../../session';
+import { postText } from '../../share/postText';
+import { openXIntent } from '../../share/share';
 import type { ScreenFactory } from '../app';
 import { button, externalLink, h, linkButton } from '../dom';
 import { openBasis, openImagePreview, openPrivacy } from '../modals';
-import { postText } from '../../share/postText';
-import { openXIntent } from '../../share/share';
 import { homeButton, soundButton } from '../parts';
 import { summarize } from '../resultText';
 import { createScene } from '../scene';
@@ -27,6 +28,9 @@ export const resultScreen: ScreenFactory = (app) => {
   tameru.className = 'btn btn-link-out';
   const follow = externalLink(t('links.follow'), config.links.follow);
 
+  const tile = (label: string, value: string) =>
+    h('div', { className: 'tile card' }, [h('p', { className: 'tile-label', text: label }), h('p', { className: 'tile-value', text: value })]);
+
   const el = h('div', { className: 'screen result' }, [
     h('div', { className: 'top-bar' }, [
       homeButton(() => app.go('title')),
@@ -35,21 +39,29 @@ export const resultScreen: ScreenFactory = (app) => {
       soundButton(),
     ]),
 
-    h('p', { className: 'stat-label', text: t('result.spent') }),
-    h('p', { className: 'result-spent', text: s.spent }),
-    h('p', { className: 'result-weight' }, [
-      h('span', { className: 'stat-label', text: t('result.weight') }),
-      ' ',
-      h('strong', { text: s.weight }),
+    // B1：結果のカード（スクショしても映えるように1枚にまとめる）
+    h('section', { className: 'result-card card' }, [
+      h('p', { className: 'stat-label', text: t('result.spent') }),
+      h('p', { className: 'result-spent', text: s.spent }),
+      h('p', { className: 'result-weight' }, [
+        h('span', { className: 'stat-label', text: t('result.weight') }),
+        ' ',
+        h('strong', { text: s.weight }),
+        h('span', { className: 'result-size', text: ` ${t('result.size', { size: formatSize(sideCm(g.spent, config.gold)) })}` }),
+      ]),
+      h('div', { className: 'scene-wrap result-scene' }, [scene.el]),
+      h('p', { className: 'result-line', text: s.line }),
+      // B2：「ちっさ…」のハンコ（結果の音の2音目に合わせて押される）
+      h('span', { className: 'stamp', text: t('result.stamp'), attrs: { 'aria-hidden': 'true' } }),
     ]),
-    h('p', { className: 'result-size', text: t('result.size', { size: formatSize(sideCm(g.spent, config.gold)) }) }),
 
-    h('div', { className: 'scene-wrap result-scene' }, [scene.el]),
-    h('p', { className: 'result-line', text: s.line }),
-    h('p', { className: 'result-meta', text: t('result.passedCount', { n: g.passed, total: objects.length }) }),
-    h('p', { className: 'result-meta', text: t('result.taps', { n: formatNumberJa(g.taps) }) }),
+    // B3：数字の小さなカード
+    h('div', { className: 'tiles' }, [
+      tile(t('result.passedLabel'), t('result.passedValue', { n: g.passed, total: objects.length })),
+      tile(t('result.tapsLabel'), t('result.tapsValue', { n: formatNumberJa(g.taps) })),
+    ]),
 
-    h('section', { className: 'aside' }, [
+    h('section', { className: 'aside card' }, [
       h('h3', { className: 'aside-heading', text: t('result.allGoldHeading') }),
       h('p', { text: t('result.allGold', { side: formatSize(all.sideCm), price: formatYen(config.gold.pricePerGram), yen: formatYen(all.yen) }) }),
     ]),

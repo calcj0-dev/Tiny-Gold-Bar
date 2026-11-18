@@ -396,6 +396,25 @@ const bathtub: Draw = (ctx, x, y, w, h, lw) => {
 
 const ART: Record<string, Draw> = { sesame, rice, coin1, dice, battery, egg, phone, book, milk, bottle2l, bucket, bathtub };
 
+/** 物のイラストを、縦横比のまま size×size の枠の中央に描いた canvas（並び・一言の帯で使う小さな絵） */
+export function iconCanvas(o: { id: string; w: number; h: number }, size: number, pad = 2, lw = 0.8): HTMLCanvasElement {
+  const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+  const c = document.createElement('canvas');
+  c.width = Math.round(size * dpr);
+  c.height = Math.round(size * dpr);
+  c.style.width = `${size}px`;
+  c.style.height = `${size}px`;
+  const ctx = c.getContext('2d');
+  if (ctx) {
+    ctx.scale(dpr, dpr);
+    const k = Math.min((size - pad * 2) / o.w, (size - pad * 2) / o.h);
+    const w = o.w * k;
+    const h = o.h * k;
+    drawArt(ctx, o.id, (size - w) / 2, (size - h) / 2, w, h, lw);
+  }
+  return c;
+}
+
 /** id のイラストがあれば描いて true。なければ false（呼び出し側が shape で描く） */
 export function drawArt(ctx: Ctx, id: string, x: number, y: number, w: number, h: number, lw: number): boolean {
   const draw = ART[id];
@@ -488,10 +507,10 @@ export function drawGoldCube(ctx: Ctx, x: number, ground: number, s: number, dep
   ctx.restore();
 }
 
-/** 4つの角のきらめき */
-function star(ctx: Ctx, cx: number, cy: number, r: number): void {
+/** 4つの角のきらめき。color を省くと白 */
+export function star(ctx: Ctx, cx: number, cy: number, r: number, color = 'rgba(255,255,255,0.95)'): void {
   if (r < 1.5) return;
-  ctx.fillStyle = 'rgba(255,255,255,0.95)';
+  ctx.fillStyle = color;
   ctx.beginPath();
   ctx.moveTo(cx, cy - r);
   ctx.quadraticCurveTo(cx, cy, cx + r, cy);
