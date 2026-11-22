@@ -5,7 +5,8 @@ import { sideCm } from '../core/gold';
 import { type CompareObject, config, objects } from '../data';
 import { t } from '../i18n';
 import type { MessageKey } from '../i18n/types';
-import { drawArt, drawGoldCube, groundShadow, star } from './art';
+import { formatSize } from '../core/format';
+import { artExtent, drawArt, drawGoldCube, groundShadow, star } from './art';
 
 /** 物の名前（ja.json の objects。全部の id の名前があることは data.ts で検査済み） */
 export function objectName(o: CompareObject): string {
@@ -18,10 +19,10 @@ export const DEPTH = 0.35;
 export const GAP_PX = 24;
 /** 左右の余白（px） */
 const SIDE_PAD = 16;
-/** 物の名前を書く所の高さ（px） */
-const LABEL_H = 28;
 /** 名前を書かないときの、床の高さ（px） */
 const FLOOR_H = 14;
+/** 床にものさしを描くときの、床の高さ（px） */
+const RULER_H = 26;
 const BOUNCE_MS = 160;
 
 type Size = { w: number; h: number };
@@ -45,9 +46,11 @@ export function computeScale(
   const goldExtent = side * (1 + DEPTH);
   const targetH = area.h * ratio;
   const obj = next ?? last;
-  let s = next ? targetH / Math.max(next.h, goldExtent) : targetH / goldExtent;
+  // 物は奥行きのぶん右上に広がる（立体の絵。art.ts の artExtent）
+  const ext = artExtent(obj);
+  let s = next ? targetH / Math.max(ext.h, goldExtent) : targetH / goldExtent;
   const availW = area.w - pad * 2 - gap;
-  if (availW > 0) s = Math.min(s, availW / (obj.w + goldExtent));
+  if (availW > 0) s = Math.min(s, availW / (ext.w + goldExtent));
   return s;
 }
 
@@ -73,10 +76,26 @@ function reducedMotion(): boolean {
   return typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-/** label：物の名前を絵の下に書くか（プレイ画面は絵の上に大きく出すので書かない） */
-export function createScene(opts: { label?: boolean } = {}): Scene {
+type SceneOptions = {
+  /** 物の名前を絵の下に書くか（プレイ画面は絵の上に大きく出すので書かない） */
+  label?: boolean;
+  /** 床に cm のものさしを描くか（名前を書かないときだけ） */
+  ruler?: boolean;
+  /** 金塊に「一辺〇cm」の札と寸法線を付けるか */
+  sizeTag?: boolean;
+};
+
+/** 絵の下に取る高さ（名前・ものさし・床） */
+function bottomHeight(label: boolean, ruler: boolean, fontPx = 13): number {
+  if (label) return fontPx + 15;
+  return ruler ? RULER_H : FLOOR_H;
+}
+
+export function createScene(opts: SceneOptions = {}): Scene {
   const label = opts.label ?? true;
-  const bottomH = label ? LABEL_H : FLOOR_H;
+  const ruler = !label && (opts.ruler ?? false);
+  const sizeTag = opts.sizeTag ?? false;
+  const bottomH = bottomHeight(label, ruler);
   const canvas = document.createElement('canvas');
   canvas.className = 'scene';
   const ctx = canvas.getContext('2d');
@@ -142,7 +161,7 @@ export function createScene(opts: { label?: boolean } = {}): Scene {
     // 金塊（タップで少し弾む。下を軸に伸び縮み）
     const bp = (now - bounceStart) / BOUNCE_MS;
     const k = bp >= 0 && bp < 1 && !reducedMotion() ? 1 + 0.08 * Math.sin(Math.PI * bp) : 1;
-    gold = paintScene(ctx, { x: 0, y: 0, w: size.w, h: size.h }, spent, passed, scale, { bounce: k, label });
+    gold = paintScene(ctx, { x: 0, y: 0, w: size.w, h: size.h }, spent, passed, scale, { bounce: k, label, ruler, sizeTag });
     const bt = (now - burstStart) / BURST_MS;
     if (bt >= 0 && bt < 1 && gold) paintBurst(ctx, gold, bt);
   }
@@ -198,7 +217,108 @@ function paintBurst(ctx: CanvasRenderingContext2D, g: GoldBox, t: number): void 
     star(ctx, g.cx + Math.cos(a) * d, g.cy + Math.sin(a) * d, r, i % 3 === 0 ? `rgba(255,255,255,${alpha})` : `rgba(255,214,90,${alpha})`);
   }
 }
-type PaintOptions = { bounce?: number; fontPx?: number; lineWidth?: number; pad?: number; gap?: number; label?: boolean };
+type PaintOptions = {
+  bounce?: number;
+  fontPx?: number;
+  lineWidth?: number;
+  pad?: number;
+  gap?: number;
+  label?: boolean;
+  ruler?: boolean;
+  sizeTag?: boolean;
+  /** 札の文字の大きさ（px） */
+  tagPx?: number;
+};
+
+const FONT = '"TGB Rounded", system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif';
+/** ものさしの1目盛りの候補（cm） */
+const RULER_UNITS = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000];
+
+/** 床のものさし（UI 改善 ★2）。物の左端を 0 にして、縮尺に合わせて 1cm・10cm・1m などの目盛りを描く */
+function paintRuler(ctx: CanvasRenderingContext2D, x0: number, xEnd: number, ground: number, height: number, s: number): void {
+  if (!(s > 0) || xEnd - x0 < 30) return;
+  const u = RULER_UNITS.find((c) => c * s >= 52) ?? RULER_UNITS[RULER_UNITS.length - 1]!;
+  const major = u * s;
+  const minorN = major / 5 >= 6 ? 5 : major / 2 >= 6 ? 2 : 1;
+  const top = ground + 2;
+  // 木のものさしの帯
+  ctx.fillStyle = 'rgba(236,214,166,0.55)';
+  ctx.fillRect(x0, top, xEnd - x0, height - 4);
+  ctx.strokeStyle = '#a8916a';
+  ctx.fillStyle = '#7a6a4e';
+  ctx.lineWidth = 1;
+  ctx.font = `700 10px ${FONT}`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  for (let i = 0; x0 + (i * major) / minorN <= xEnd + 0.5; i++) {
+    const x = Math.round(x0 + (i * major) / minorN) + 0.5;
+    const isMajor = i % minorN === 0;
+    ctx.beginPath();
+    ctx.moveTo(x, top);
+    ctx.lineTo(x, top + (isMajor ? 8 : 4));
+    ctx.stroke();
+    if (isMajor) {
+      const text = i === 0 ? '0' : formatSize((i / minorN) * u);
+      const tw = ctx.measureText(text).width;
+      if (x + tw / 2 <= xEnd) ctx.fillText(text, x, top + height - 4);
+    }
+  }
+}
+
+/** 金塊の「一辺〇cm」の札と、左側の寸法線（UI 改善 ★1） */
+function paintSizeTag(ctx: CanvasRenderingContext2D, box: Box, gx: number, ground: number, gs: number, sideCmValue: number, px: number): void {
+  const d = gs * DEPTH;
+  const top = ground - gs;
+  const color = '#a87b0a';
+  // 寸法線（正面の左、上から地面まで）
+  if (gs >= 16) {
+    const lx = Math.round(gx - Math.max(6, px * 0.5)) + 0.5;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(lx, top + 1);
+    ctx.lineTo(lx, ground - 1);
+    ctx.moveTo(lx - 4, top + 1);
+    ctx.lineTo(lx + 4, top + 1);
+    ctx.moveTo(lx - 4, ground - 1);
+    ctx.lineTo(lx + 4, ground - 1);
+    ctx.stroke();
+  }
+  // 札（金塊の上。はみ出すときは枠の中に収める）
+  const text = t('play.sideTag', { size: formatSize(sideCmValue) });
+  ctx.font = `800 ${px}px ${FONT}`;
+  const tw = ctx.measureText(text).width;
+  const pw = tw + px * 1.2;
+  const ph = px * 1.7;
+  const cx = gx + (gs * (1 + DEPTH)) / 2;
+  const tipY = Math.max(top - d - 4, box.y + ph + 8);
+  const py = tipY - 6 - ph;
+  const pxl = Math.min(Math.max(cx - pw / 2, box.x + 4), box.x + box.w - pw - 4);
+  ctx.fillStyle = 'rgba(255,255,255,0.95)';
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.roundRect(pxl, py, pw, ph, ph / 2);
+  ctx.fill();
+  ctx.stroke();
+  // 金塊を指す小さな三角
+  const ax = Math.min(Math.max(cx, pxl + ph / 2), pxl + pw - ph / 2);
+  ctx.beginPath();
+  ctx.moveTo(ax - 5, py + ph - 0.5);
+  ctx.lineTo(ax, tipY);
+  ctx.lineTo(ax + 5, py + ph - 0.5);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(ax - 5, py + ph);
+  ctx.lineTo(ax, tipY);
+  ctx.lineTo(ax + 5, py + ph);
+  ctx.stroke();
+  ctx.fillStyle = color;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, pxl + pw / 2, py + ph / 2 + 1);
+}
 
 /**
  * 枠 box の中に、地面・次の物（全部追い越したら最後の物）・物の名前・金塊を描く。
@@ -207,7 +327,8 @@ type PaintOptions = { bounce?: number; fontPx?: number; lineWidth?: number; pad?
 export function paintScene(ctx: CanvasRenderingContext2D, box: Box, spent: number, passed: number, scale?: number, opt: PaintOptions = {}): GoldBox {
   const fontPx = opt.fontPx ?? 13;
   const label = opt.label ?? true;
-  const labelH = label ? fontPx + 15 : FLOOR_H;
+  const ruler = !label && (opt.ruler ?? false);
+  const labelH = bottomHeight(label, ruler, fontPx);
   const pad = opt.pad ?? SIDE_PAD;
   const gap = opt.gap ?? GAP_PX;
   const k = opt.bounce ?? 1;
@@ -220,8 +341,11 @@ export function paintScene(ctx: CanvasRenderingContext2D, box: Box, spent: numbe
   const obj = next ?? last;
   const sidePx = side * s;
   const objW = obj.w * s;
+  // 物の奥行き（右上へのずらし）と、奥行きを含めた見た目の幅
+  const dp = (obj.d ?? 0) * DEPTH * s;
+  const extW = objW + dp;
   const goldW = sidePx * (1 + DEPTH);
-  const x0 = box.x + (box.w - (objW + gap + goldW)) / 2;
+  const x0 = box.x + (box.w - (extW + gap + goldW)) / 2;
 
   // 床（地面から下をうすい色で塗り、上との境に線）
   ctx.fillStyle = 'rgba(214,196,160,0.18)';
@@ -232,12 +356,13 @@ export function paintScene(ctx: CanvasRenderingContext2D, box: Box, spent: numbe
   ctx.moveTo(box.x + pad, ground + 0.5);
   ctx.lineTo(box.x + box.w - pad, ground + 0.5);
   ctx.stroke();
+  if (ruler) paintRuler(ctx, x0, box.x + box.w - pad, ground, labelH, s);
 
   // 影
-  groundShadow(ctx, x0 + objW / 2, ground, objW);
-  groundShadow(ctx, x0 + objW + gap + goldW / 2, ground, goldW * k);
+  groundShadow(ctx, x0 + extW / 2, ground, extW);
+  groundShadow(ctx, x0 + extW + gap + goldW / 2, ground, goldW * k);
 
-  drawObject(ctx, obj, x0, ground, objW, obj.h * s, opt.lineWidth ?? 2);
+  drawObject(ctx, obj, x0, ground, objW, obj.h * s, opt.lineWidth ?? 2, dp);
 
   // 物の名前
   if (label) {
@@ -249,16 +374,17 @@ export function paintScene(ctx: CanvasRenderingContext2D, box: Box, spent: numbe
   }
 
   // 弾んでいる間（k > 1）はきらめきを強くする
-  const gx = x0 + objW + gap + (goldW - goldW * k) / 2;
+  const gx = x0 + extW + gap + (goldW - goldW * k) / 2;
   drawGoldCube(ctx, gx, ground, sidePx * k, DEPTH, Math.min(1, (k - 1) / 0.08));
   const gs = sidePx * k;
+  if (opt.sizeTag && spent > 0) paintSizeTag(ctx, box, gx, ground, gs, side, opt.tagPx ?? 12);
   return { cx: gx + (gs * (1 + DEPTH)) / 2, cy: ground - (gs * (1 + DEPTH)) / 2, size: gs * (1 + DEPTH) };
 }
 
-function drawObject(ctx: CanvasRenderingContext2D, obj: CompareObject, x: number, ground: number, w: number, h: number, lineWidth: number) {
+function drawObject(ctx: CanvasRenderingContext2D, obj: CompareObject, x: number, ground: number, w: number, h: number, lineWidth: number, dp: number) {
   const y = ground - h;
   // イラストがある物はイラストで描く。ない物（JSON で足した物）は shape の輪郭で描く
-  if (drawArt(ctx, obj.id, x, y, w, h, lineWidth)) return;
+  if (drawArt(ctx, obj.id, x, y, w, h, lineWidth, dp)) return;
   ctx.fillStyle = cssVar('--surface', '#f5f5f2');
   ctx.strokeStyle = cssVar('--text-sub', '#6b665c');
   ctx.lineWidth = lineWidth;

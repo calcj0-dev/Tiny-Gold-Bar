@@ -64,6 +64,12 @@ describe('T-06 データの検査', () => {
     expect(e).toMatch(/i18n\/en: missing "play\.buy"/);
   });
 
+  it('奥行き d がマイナスだと止まる（省くのはよい）', () => {
+    const o = objs();
+    o.objects[0]!.d = -1;
+    expect(validateData(cfg(), o, { ja: ja() }).join()).toMatch(/objects\[0\]\.d must be >= 0/);
+  });
+
   it('リンクが https:// で始まらないと止まる', () => {
     const c = cfg();
     c.links.follow = 'http://x.com/';

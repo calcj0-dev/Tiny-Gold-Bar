@@ -43,7 +43,8 @@ export const playScreen: ScreenFactory = (app) => {
   ]);
 
   // 物の名前は並びの下に大きく出すので、絵の下には書かない
-  const scene = createScene({ label: false });
+  // 床にものさし、金塊に「一辺〇cm」の札（UI 改善 ★1・★2）
+  const scene = createScene({ label: false, ruler: true, sizeTag: true });
 
   const amountButtons = config.amounts.map((a, i) => {
     const b = button('', () => {

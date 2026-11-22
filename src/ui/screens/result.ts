@@ -21,7 +21,7 @@ export const resultScreen: ScreenFactory = (app) => {
   const s = summarize(g);
   sfx.result();
 
-  const scene = createScene();
+  const scene = createScene({ sizeTag: true });
   const all = allGold(config.allGold.tonnes, config.gold);
 
   const tameru = externalLink(t('links.tameruButton'), config.links.tameru);

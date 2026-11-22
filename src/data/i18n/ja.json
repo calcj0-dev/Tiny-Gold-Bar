@@ -27,6 +27,7 @@
     "taps": "{n}回",
     "weightValue": "{weight}（{taps}）",
     "plus": "+{amount}",
+    "sideTag": "一辺{size}",
     "toResult": "結果を見る",
     "next": "次は {name}",
     "pass": "{name}を追い越しました！",

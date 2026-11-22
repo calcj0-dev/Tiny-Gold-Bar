@@ -57,7 +57,7 @@
         <p>金を買い続けると、<br />金塊はどのくらいの大きさになる？</p>
       </div>
       <div class="art">
-        <!-- 牛乳パックと、1億円の金塊（一辺6.37cm）を同じ縮尺で（1cm＝16px）。絵はゲームと同じ src/ui/art.ts で描く -->
+        <!-- 牛乳パックと、1億円の金塊（一辺6.37cm）を同じ縮尺で（1cm＝15px）。絵はゲームと同じ src/ui/art.ts で描く（立体） -->
         <canvas id="art" width="300" height="420"></canvas>
         <div class="ground"></div>
       </div>
@@ -65,7 +65,7 @@
     <script type="module">
       import { drawArt, drawGoldCube, groundShadow } from '../../src/ui/art.ts';
 
-      const S = 16; // 1cm あたりの px
+      const S = 15; // 1cm あたりの px
       const DEPTH = 0.35;
       const canvas = document.getElementById('art');
       const dpr = window.devicePixelRatio || 1;
@@ -76,16 +76,17 @@
       const ctx = canvas.getContext('2d');
       ctx.scale(dpr, dpr);
       const ground = 418;
-      // 牛乳パック（7×19.5cm）
+      // 牛乳パック（7×19.5cm、奥行き7cm）
       const mw = 7 * S;
       const mh = 19.5 * S;
-      const mx = 20;
+      const dp = 7 * DEPTH * S;
+      const mx = 6;
       // 1億円の金塊（5kg、一辺6.37cm）
       const side = Math.cbrt(100_000_000 / 20000 / 19.32) * S;
-      const gx = mx + mw + 26;
-      groundShadow(ctx, mx + mw / 2, ground, mw);
+      const gx = mx + mw + dp + 18;
+      groundShadow(ctx, mx + (mw + dp) / 2, ground, mw + dp);
       groundShadow(ctx, gx + (side * (1 + DEPTH)) / 2, ground, side * (1 + DEPTH));
-      drawArt(ctx, 'milk', mx, ground - mh, mw, mh, 3);
+      drawArt(ctx, 'milk', mx, ground - mh, mw, mh, 3, dp);
       drawGoldCube(ctx, gx, ground, side, DEPTH, 0.6);
       document.body.dataset.ready = '1';
     </script>

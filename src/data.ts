@@ -22,8 +22,13 @@ export type GameConfig = {
   links: { tameru: string; follow: string; appLab: string; vercelPrivacy: string; xIntent: string };
 };
 
-export type CompareObject = { id: string; volumeCm3: number; shape: Shape; w: number; h: number };
-export type ObjectsData = { version: number; note?: string; objects: { id: string; volumeCm3: number; shape: string; w: number; h: number }[] };
+/** d：奥行き（cm）。絵を立体に描くためだけに使う。省くと 0 */
+export type CompareObject = { id: string; volumeCm3: number; shape: Shape; w: number; h: number; d?: number };
+export type ObjectsData = {
+  version: number;
+  note?: string;
+  objects: { id: string; volumeCm3: number; shape: string; w: number; h: number; d?: number }[];
+};
 
 /** 入れ子の文言の JSON から、点区切りのキーを全部取り出す */
 function leafKeys(obj: unknown, prefix = ''): string[] {
@@ -64,6 +69,7 @@ export function validateData(cfg: GameConfig, objs: ObjectsData, locales: Record
     if (prev && o.volumeCm3 <= prev.volumeCm3) errors.push(`objects[${i}].volumeCm3 must be larger than objects[${i - 1}]`);
     if (!(SHAPES as readonly string[]).includes(o.shape)) errors.push(`objects[${i}].shape "${o.shape}" is unknown`);
     if (!isPositive(o.w) || !isPositive(o.h)) errors.push(`objects[${i}].w and h must be positive`);
+    if (o.d !== undefined && !(Number.isFinite(o.d) && o.d >= 0)) errors.push(`objects[${i}].d must be >= 0`);
   });
 
   // 文言：全言語が日本語と同じキーを持ち、全部の物の名前がある

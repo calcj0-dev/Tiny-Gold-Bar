@@ -3,7 +3,7 @@
 
 import { sideCm } from '../core/gold';
 import { config, objects } from '../data';
-import { drawArt, drawGoldCube, groundShadow } from './art';
+import { ART_DEPTH, artExtent, drawArt, drawGoldCube, groundShadow } from './art';
 import { reducedMotion } from './effects';
 
 const W = 240;
@@ -30,17 +30,19 @@ export function createTitleArt(): { el: HTMLCanvasElement; destroy(): void } {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, W, H);
     const ground = H - 6;
-    // 牛乳パックの高さが絵の高さの85%になる縮尺
-    const s = ((H - 16) * 0.85) / milk.h;
+    // 牛乳パック（奥行きを含めた高さ）が絵の高さの88%になる縮尺
+    const ext = artExtent(milk);
+    const s = ((H - 16) * 0.88) / ext.h;
     const mw = milk.w * s;
     const mh = milk.h * s;
+    const dp = (milk.d ?? 0) * ART_DEPTH * s;
     const side = sideCm(SPENT, config.gold) * s;
-    const total = mw + 20 + side * (1 + DEPTH);
+    const total = mw + dp + 20 + side * (1 + DEPTH);
     const mx = (W - total) / 2;
-    const gx = mx + mw + 20;
-    groundShadow(ctx, mx + mw / 2, ground, mw);
+    const gx = mx + mw + dp + 20;
+    groundShadow(ctx, mx + (mw + dp) / 2, ground, mw + dp);
     groundShadow(ctx, gx + (side * (1 + DEPTH)) / 2, ground, side * (1 + DEPTH));
-    drawArt(ctx, 'milk', mx, ground - mh, mw, mh, 2);
+    drawArt(ctx, 'milk', mx, ground - mh, mw, mh, 2, dp);
     drawGoldCube(ctx, gx, ground, side, DEPTH, sparkle);
   };
 
